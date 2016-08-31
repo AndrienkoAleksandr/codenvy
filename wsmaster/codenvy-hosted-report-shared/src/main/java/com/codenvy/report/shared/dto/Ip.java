@@ -12,20 +12,19 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.api.license.server;
+package com.codenvy.report.shared.dto;
 
-import com.google.inject.AbstractModule;
-
-import org.eclipse.che.inject.DynaModule;
+import org.eclipse.che.dto.shared.DTO;
 
 /**
- * @author Alexander Andrienko
+ * @author Dmytro Nochevnov
  */
-@DynaModule
-public class LisenseModule extends AbstractModule {
-    @Override
-    protected void configure() {
-        bind(LicenseService.class);
-        bind(LicenseServicePermissionsFilter.class);
-    }
+@DTO
+public interface Ip {
+
+    String getValue();
+
+    void setValue(String value);
+
+    Ip withValue(String value);
 }

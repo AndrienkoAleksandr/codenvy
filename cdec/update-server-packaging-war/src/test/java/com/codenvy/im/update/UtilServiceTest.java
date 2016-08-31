@@ -14,6 +14,8 @@
  */
 package com.codenvy.im.update;
 
+import com.codenvy.report.shared.dto.Ip;
+import org.eclipse.che.dto.server.DtoFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -44,7 +46,8 @@ public class UtilServiceTest {
 
         Response response = testUtilService.getClientIp(mockRequestContext);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), "10.20.30.40");
+        Ip ipDto = DtoFactory.getInstance().createDtoFromJson(response.getEntity().toString(), Ip.class);
+        assertEquals(ipDto, DtoFactory.newDto(Ip.class).withValue("10.20.30.40"));
     }
 
     @Test

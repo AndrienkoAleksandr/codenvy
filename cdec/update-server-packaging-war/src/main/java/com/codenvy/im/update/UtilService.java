@@ -14,7 +14,9 @@
  */
 package com.codenvy.im.update;
 
+import com.codenvy.report.shared.dto.Ip;
 import org.eclipse.che.api.core.rest.annotations.GenerateLink;
+import org.eclipse.che.dto.server.DtoFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +43,17 @@ public class UtilService {
     public UtilService() {
     }
 
-    /** Get client's IP. */
+    /**
+     * Get client's IP.
+     */
     @GenerateLink(rel = "return client's external IP")
     @GET
     @Path("/client-ip")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getClientIp(@Context HttpServletRequest requestContext) {
         try {
             String clientIp = requestContext.getRemoteAddr();
-            return Response.status(Response.Status.OK).entity(clientIp).build();
+            return Response.status(Response.Status.OK).entity(DtoFactory.newDto(Ip.class).withValue(clientIp)).build();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unexpected error. " + e.getMessage()).build();

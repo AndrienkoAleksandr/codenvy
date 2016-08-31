@@ -14,6 +14,9 @@
  */
 package com.codenvy.api.license.server.license;
 
+import com.codenvy.api.user.server.dao.AdminUserDao;
+import com.codenvy.swarm.client.SwarmDockerConnector;
+import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.commons.annotation.Nullable;
 
 import javax.inject.Inject;
@@ -40,23 +43,31 @@ public class CodenvyLicenseManager {
 
     private final CodenvyLicenseFactory licenseFactory;
     private final Path                  licenseFile;
+    private final AdminUserDao          adminUserDao;
+    private final SwarmDockerConnector  dockerConnector;
 
     @Inject
-    public CodenvyLicenseManager(@Named("license-manager.license-file") String licenseFile, CodenvyLicenseFactory licenseFactory) {
+    public CodenvyLicenseManager(@Named("license-manager.license-file") String licenseFile,
+                                 CodenvyLicenseFactory licenseFactory,
+                                 AdminUserDao adminUserDao,
+                                 SwarmDockerConnector dockerConnector) {
         this.licenseFactory = licenseFactory;
         this.licenseFile = Paths.get(licenseFile);
+        this.adminUserDao = adminUserDao;
+        this.dockerConnector = dockerConnector;
     }
 
     /**
      * Stores valid Codenvy license into the storage.
      *
      * @throws NullPointerException
-     *         if {@code codenvyLicense} is null
+     *         if {@code licenseStr} is null
      * @throws LicenseException
      *         if error occurred while storing
      */
-    public void store(@NotNull CodenvyLicense codenvyLicense) throws LicenseException {
-        Objects.requireNonNull(codenvyLicense, "license must not be null");
+    public void store(@NotNull String licenseStr) throws LicenseException {
+        Objects.requireNonNull(licenseStr, "Codenvy license must not be null");
+        CodenvyLicense codenvyLicense = licenseFactory.create(licenseStr);
 
         try {
             Files.write(licenseFile, codenvyLicense.getLicenseText().getBytes());
@@ -106,6 +117,39 @@ public class CodenvyLicenseManager {
             throw new LicenseNotFoundException("Codenvy license not found");
         } catch (IOException e) {
             throw new LicenseException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Return true if only Codenvy usage meets the constrains of license properties or free usage properties.
+     **/
+    public boolean isCodenvyUsageLegal() throws ServerException, IOException {
+        long actualUsers = adminUserDao.getAll(30, 0).getTotalItemsCount();   // TODO ndp (codenvy/600) fix it get all users number
+        int actualServers = dockerConnector.getAvailableNodes().size();
+
+        try {
+            CodenvyLicense codenvyLicense = load();
+            return codenvyLicense.isLicenseUsageLegal(actualUsers, actualServers);
+        } catch (LicenseException e) {
+            return CodenvyLicense.isFreeUsageLegal(actualUsers, actualServers);
+        }
+    }
+
+    /**
+     * Return true if only node number meets the constrains of license properties or free usage properties.
+     * If nodeNumber == null, uses actual number of machine nodes.
+     * @param nodeNumber - number of machine nodes.
+     **/
+    public boolean isCodenvyNodesUsageLegal(Integer nodeNumber) throws IOException {
+        if (nodeNumber == null) {
+            nodeNumber = dockerConnector.getAvailableNodes().size();
+        }
+
+        try {
+            CodenvyLicense codenvyLicense = load();
+            return codenvyLicense.isLicenseNodesUsageLegal(nodeNumber);
+        } catch (LicenseException e) {
+            return CodenvyLicense.isFreeUsageLegal(0, nodeNumber);  // user number doesn't matter
         }
     }
 }

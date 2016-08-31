@@ -12,7 +12,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.im.report;
+package com.codenvy.report;
 
 /**
  * @author Dmytro Nochevnov

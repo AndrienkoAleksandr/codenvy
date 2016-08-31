@@ -14,8 +14,8 @@
  */
 package com.codenvy.im.update;
 
-import com.codenvy.im.report.ReportParameters;
-import com.codenvy.im.report.ReportType;
+import com.codenvy.report.ReportParameters;
+import com.codenvy.report.ReportType;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
