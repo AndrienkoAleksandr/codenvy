@@ -26,8 +26,9 @@ public class SynchronizerTest {
 
     private final LdapConnectionFactoryProvider p = new LdapConnectionFactoryProvider("cn=admin,dc=willeke,dc=com",
                                                                                       "ldappassword",
-                                                                                      "simple",
-                                                                                      "ldap://172.17.0.2:389");
+                                                                                      "ldap://172.17.0.2:389",
+                                                                                      30_000,
+                                                                                      120_000);
 
     @Test
     public void testSync() throws Exception {
