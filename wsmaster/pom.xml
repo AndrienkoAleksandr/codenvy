@@ -49,5 +49,6 @@
         <module>codenvy-hosted-api-workspace</module>
         <module>codenvy-hosted-authorization</module>
         <module>codenvy-hosted-api-factory</module>
+        <module>codenvy-ldap</module>
     </modules>
 </project>
