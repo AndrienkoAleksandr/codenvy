@@ -10,19 +10,32 @@
  *******************************************************************************/
 package com.codenvy.ldap.sync;
 
+import com.codenvy.ldap.LdapConnectionFactoryProvider;
+import com.codenvy.ldap.MyLdapServer;
+
+import org.apache.directory.shared.ldap.entry.ServerEntry;
 import org.ldaptive.Connection;
+import org.ldaptive.DefaultConnectionFactory;
 import org.ldaptive.Response;
 import org.ldaptive.SearchFilter;
 import org.ldaptive.SearchOperation;
 import org.ldaptive.SearchRequest;
 import org.ldaptive.SearchResult;
 import org.ldaptive.SearchScope;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertFalse;
+
 /**
+ * Tests {@link Synchronizer}.
+ *
  * @author Yevhenii Voevodin
  */
 public class SynchronizerTest {
+
+    private static final String BASE_DN = "dc=codenvy,dc=com";
 
     private final LdapConnectionFactoryProvider p = new LdapConnectionFactoryProvider("cn=admin,dc=willeke,dc=com",
                                                                                       "ldappassword",
@@ -30,19 +43,42 @@ public class SynchronizerTest {
                                                                                       30_000,
                                                                                       120_000);
 
-    @Test
-    public void testSync() throws Exception {
-        final Synchronizer synchronizer = new Synchronizer(p.get());
+    private MyLdapServer server;
 
-        try (Connection connection = p.get().getConnection()) {
+    @BeforeMethod
+    public void startServer() throws Exception {
+        server = MyLdapServer.builder()
+                             .setPartitionId("codenvy")
+                             .setPartitionDn(BASE_DN)
+                             .allowAnonymousAccess()
+                             .useTmpWorkingDir()
+                             .build();
+
+        final ServerEntry newEntry = server.createEntry("uid", "vova");
+        newEntry.add("objectClass", "inetOrgPerson");
+        newEntry.add("cn", "vovka");
+        newEntry.add("uid", "id");
+        newEntry.add("sn", "<none>");
+        server.addEntry(newEntry);
+
+        server.start();
+    }
+
+    @AfterMethod
+    public void stopServer() throws Exception {
+        server.stop();
+    }
+
+    @Test
+    public void test() throws Exception {
+        try (Connection connection = DefaultConnectionFactory.getConnection(server.getUrl())) {
             connection.open();
             final SearchRequest req = new SearchRequest();
-            req.setBaseDn("cn=Abby Hermes,ou=Product Development,dc=willeke,dc=com");
+            req.setBaseDn(BASE_DN);
             req.setSearchFilter(new SearchFilter("(objectClass=*)"));
-            req.setSearchScope(SearchScope.OBJECT);
-            req.setReturnAttributes("mail");
+            req.setSearchScope(SearchScope.SUBTREE);
             final Response<SearchResult> resp = new SearchOperation(connection).execute(req);
-            System.out.println(resp.getResult().getEntry());
+            assertFalse(resp.getResult().getEntries().isEmpty());
         }
     }
 }

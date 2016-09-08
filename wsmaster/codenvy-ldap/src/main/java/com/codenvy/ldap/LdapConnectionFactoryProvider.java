@@ -1,4 +1,4 @@
-package com.codenvy.ldap.sync;
+package com.codenvy.ldap;
 
 
 import org.ldaptive.BindConnectionInitializer;
