@@ -12,7 +12,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.api.license.server.license;
+package com.codenvy.api.license;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,9 +21,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
-import static com.codenvy.api.license.server.license.LicenseFeature.EXPIRATION;
-import static com.codenvy.api.license.server.license.LicenseFeature.TYPE;
-import static com.codenvy.api.license.server.license.LicenseFeature.USERS;
+import static com.codenvy.api.license.LicenseFeature.EXPIRATION;
+import static com.codenvy.api.license.LicenseFeature.TYPE;
+import static com.codenvy.api.license.LicenseFeature.USERS;
 
 /**
  * Represents valid Codenvy license.

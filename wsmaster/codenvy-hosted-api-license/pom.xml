@@ -31,6 +31,10 @@
             <artifactId>codenvy-hosted-api-admin</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.codenvy.onpremises.wsmaster</groupId>
+            <artifactId>codenvy-hosted-license-shared</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.codenvy.plugin</groupId>
             <artifactId>codenvy-machine-hosted</artifactId>
         </dependency>
