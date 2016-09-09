@@ -18,6 +18,7 @@ package com.codenvy.auth.sso.server;
 import com.codenvy.api.dao.authentication.AuthenticationHandler;
 
 import org.eclipse.che.api.auth.AuthenticationException;
+import org.ldaptive.Credential;
 import org.ldaptive.LdapException;
 import org.ldaptive.auth.AuthenticationRequest;
 import org.ldaptive.auth.AuthenticationResponse;
@@ -31,14 +32,14 @@ import javax.inject.Inject;
 /**
  * Created by sj on 08.09.16.
  */
-public class LdapAuthentificationHandler implements AuthenticationHandler {
+public class LdapAuthenticationHandler implements AuthenticationHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LdapAuthentificationHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LdapAuthenticationHandler.class);
 
     private final Authenticator ldapAuthenticator;
 
     @Inject
-    public LdapAuthentificationHandler(Authenticator ldapAuthenticator) {
+    public LdapAuthenticationHandler(Authenticator ldapAuthenticator) {
         this.ldapAuthenticator = ldapAuthenticator;
     }
 
@@ -50,7 +51,7 @@ public class LdapAuthentificationHandler implements AuthenticationHandler {
         try {
             LOG.debug("Attempting LDAP authentication for: {}", login);
             final AuthenticationRequest request = new AuthenticationRequest(login,
-                                                                            new org.ldaptive.Credential(password));
+                                                                            new Credential(password));
             response = this.ldapAuthenticator.authenticate(request);
         } catch (final LdapException e) {
             throw new AuthenticationException(401, "Unexpected LDAP error");
