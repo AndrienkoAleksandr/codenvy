@@ -53,5 +53,6 @@
         <module>codenvy-hosted-api-factory</module>
         <module>codenvy-hosted-api-permission-shared</module>
         <module>codenvy-hosted-integration-tests</module>
+        <module>codenvy-ldap</module>
     </modules>
 </project>
