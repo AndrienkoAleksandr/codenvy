@@ -48,6 +48,10 @@ import com.google.inject.Singleton;
 import org.eclipse.che.api.auth.AuthenticationException;
 import org.eclipse.che.api.auth.shared.dto.Credentials;
 import org.eclipse.che.api.auth.shared.dto.Token;
+import org.eclipse.che.api.core.rest.HttpJsonRequestFactory;
+import org.eclipse.che.api.core.rest.HttpJsonResponse;
+import org.eclipse.che.api.user.shared.dto.UserDto;
+import org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.commons.json.JsonParseException;
 
@@ -81,16 +85,19 @@ public class InstallationManagerFacade {
     protected final NodeManager                nodeManager;
     protected final BackupManager              backupManager;
     protected final StorageManager             storageManager;
-    protected final InstallManager             installManager;
+    private final   HttpJsonRequestFactory     httpJsonRequestFactory;
+    protected final InstallManager installManager;
     protected final DownloadManager            downloadManager;
 
     private final String saasServerEndpoint;
+    String token = "WfrTj5GmzzGH0TDL4XfDrmu8ubTSCuXPLOnimnjf498bXzWqa1W8XrCq1HeHnu1T5OiuaS0DOnHLDHDKjTTmH4K8LiWbbzCaGu09myjKXDe81yGaKuH9iXa4G5HG5yrGCaLqL4CvL9evyCTnrCiiCqjTv8aujL5OfjHHr0j9Smfq0HDzi5HG1LfnXjfeiG8n5i09W8frqm90y5jr9qb89GnCPHvGP1P94zW1qWqev8mqn59HL5DiOirOPujmT99";
 
     @Inject
     public InstallationManagerFacade(@Named("saas.api.endpoint") String saasServerEndpoint,
                                      HttpTransport transport,
                                      SaasAuthServiceProxy saasAuthServiceProxy,
                                      SaasRepositoryServiceProxy saasRepositoryServiceProxy,
+                                     HttpJsonRequestFactory httpJsonRequestFactory,
                                      LdapManager ldapManager,
                                      NodeManager nodeManager,
                                      BackupManager backupManager,
@@ -98,6 +105,7 @@ public class InstallationManagerFacade {
                                      InstallManager installManager,
                                      DownloadManager downloadManager) {
         this.saasRepositoryServiceProxy = saasRepositoryServiceProxy;
+        this.httpJsonRequestFactory = httpJsonRequestFactory;
         this.installManager = installManager;
         this.downloadManager = downloadManager;
         this.transport = transport;
@@ -107,6 +115,14 @@ public class InstallationManagerFacade {
         this.backupManager = backupManager;
         this.storageManager = storageManager;
         this.saasServerEndpoint = saasServerEndpoint;
+    }
+
+    public List<UserDto> getAuditReport() throws Exception {
+        HttpJsonResponse request = httpJsonRequestFactory.fromUrl("http://codenvy.onprem/api/admin/user")
+                                                         .setAuthorizationHeader(token)
+                                                         .useGetMethod()
+                                                         .request();
+        return request.asList(UserDto.class);
     }
 
     public String getSaasServerEndpoint() {

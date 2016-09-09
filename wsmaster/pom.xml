@@ -50,5 +50,6 @@
         <module>codenvy-hosted-authorization</module>
         <module>codenvy-hosted-api-factory</module>
         <module>codenvy-hosted-api-license</module>
+        <module>codenvy-hosted-audit-server</module>
     </modules>
 </project>

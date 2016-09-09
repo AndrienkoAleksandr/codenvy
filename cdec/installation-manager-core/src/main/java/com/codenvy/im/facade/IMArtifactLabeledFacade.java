@@ -35,6 +35,9 @@ import com.codenvy.im.utils.HttpTransport;
 import com.codenvy.im.utils.Version;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import org.eclipse.che.api.core.rest.HttpJsonRequestFactory;
+import org.eclipse.che.api.user.shared.dto.UserDto;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.commons.json.JsonParseException;
 
@@ -60,6 +63,7 @@ public class IMArtifactLabeledFacade extends InstallationManagerFacade {
                                    HttpTransport transport,
                                    SaasAuthServiceProxy saasAuthServiceProxy,
                                    SaasRepositoryServiceProxy saasRepositoryServiceProxy,
+                                   HttpJsonRequestFactory httpJsonRequestFactory,
                                    LdapManager ldapManager,
                                    NodeManager nodeManager,
                                    BackupManager backupManager,
@@ -70,6 +74,7 @@ public class IMArtifactLabeledFacade extends InstallationManagerFacade {
               transport,
               saasAuthServiceProxy,
               saasRepositoryServiceProxy,
+              httpJsonRequestFactory,
               ldapManager,
               nodeManager,
               backupManager,
@@ -78,6 +83,10 @@ public class IMArtifactLabeledFacade extends InstallationManagerFacade {
               downloadManager);
     }
 
+    @Override
+    public List<UserDto> getAuditReport() throws Exception {
+        return super.getAuditReport();
+    }
 
     /** {@inheritDoc} */
     @Override

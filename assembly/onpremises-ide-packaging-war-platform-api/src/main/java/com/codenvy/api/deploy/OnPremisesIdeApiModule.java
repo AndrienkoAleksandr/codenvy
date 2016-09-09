@@ -213,6 +213,8 @@ public class OnPremisesIdeApiModule extends AbstractModule {
 
         bind(com.codenvy.service.password.PasswordService.class);
 
+        bind(com.codenvy.audit.AuditService.class);
+
         //authentication
 
         bind(TokenValidator.class).to(com.codenvy.auth.sso.server.BearerTokenValidator.class);
