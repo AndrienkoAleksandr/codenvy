@@ -22,7 +22,6 @@ import io.swagger.annotations.ApiResponses;
 
 import com.codenvy.api.license.CodenvyLicense;
 import com.codenvy.api.license.CodenvyLicenseFactory;
-import com.codenvy.api.license.CodenvyLicenseManager;
 import com.codenvy.api.license.InvalidLicenseException;
 import com.codenvy.api.license.LicenseException;
 import com.codenvy.api.license.LicenseFeature;

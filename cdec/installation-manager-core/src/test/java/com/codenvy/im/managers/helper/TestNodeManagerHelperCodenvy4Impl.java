@@ -18,6 +18,7 @@ import com.codenvy.im.BaseTest;
 import com.codenvy.im.commands.Command;
 import com.codenvy.im.commands.CommandLibrary;
 import com.codenvy.im.commands.MacroCommand;
+import com.codenvy.im.managers.Codenvy4xLicenseManager;
 import com.codenvy.im.managers.Config;
 import com.codenvy.im.managers.ConfigManager;
 import com.codenvy.im.managers.InstallType;
@@ -61,17 +62,19 @@ import static org.testng.Assert.assertTrue;
 public class TestNodeManagerHelperCodenvy4Impl extends BaseTest {
 
     @Mock
-    private ConfigManager          mockConfigManager;
+    private ConfigManager           mockConfigManager;
     @Mock
-    private NodeConfigHelper       mockNodeConfigHelper;
+    private NodeConfigHelper        mockNodeConfigHelper;
     @Mock
-    private Command                mockCommand;
+    private Command                 mockCommand;
     @Mock
-    private HttpJsonRequestFactory httpJsonRequestFactory;
+    private HttpJsonRequestFactory  httpJsonRequestFactory;
     @Mock
-    private HttpJsonRequest        validateLicenseRequest;
+    private HttpJsonRequest         validateLicenseRequest;
     @Mock
-    private HttpJsonResponse       validateLicenseResponse;
+    private HttpJsonResponse        validateLicenseResponse;
+    @Mock
+    private Codenvy4xLicenseManager codenvy4xLicenseManager;
 
     private static final String TEST_NODE_DNS = "node1.hostname";
     private static final String TEST_HOST_URL = "hostname";
@@ -91,7 +94,7 @@ public class TestNodeManagerHelperCodenvy4Impl extends BaseTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        spyHelperCodenvy4 = spy(new NodeManagerHelperCodenvy4Impl(mockConfigManager, httpJsonRequestFactory));
+        spyHelperCodenvy4 = spy(new NodeManagerHelperCodenvy4Impl(mockConfigManager, httpJsonRequestFactory, codenvy4xLicenseManager));
 
         doReturn(ImmutableList.of(Paths.get("/etc/puppet/" + Config.SINGLE_SERVER_4_0_PROPERTIES)).iterator())
             .when(mockConfigManager).getCodenvyPropertiesFiles(InstallType.SINGLE_SERVER);

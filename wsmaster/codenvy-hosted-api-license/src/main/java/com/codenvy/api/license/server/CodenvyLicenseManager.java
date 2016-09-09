@@ -12,7 +12,13 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Codenvy S.A..
  */
-package com.codenvy.api.license;
+package com.codenvy.api.license.server;
+
+import com.codenvy.api.license.CodenvyLicense;
+import com.codenvy.api.license.CodenvyLicenseFactory;
+import com.codenvy.api.license.InvalidLicenseException;
+import com.codenvy.api.license.LicenseException;
+import com.codenvy.api.license.LicenseNotFoundException;
 
 import org.eclipse.che.commons.annotation.Nullable;
 

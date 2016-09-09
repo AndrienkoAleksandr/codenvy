@@ -42,12 +42,13 @@ public class NodeManager {
 
     @Inject
     public NodeManager(ConfigManager configManager,
-                       HttpJsonRequestFactory httpJsonRequestFactory) throws IOException {
+                       HttpJsonRequestFactory httpJsonRequestFactory,
+                       Codenvy4xLicenseManager codenvy4xLicenseManager) throws IOException {
         this.configManager = configManager;
 
         HELPERS = ImmutableMap.of(
             3, new NodeManagerHelperCodenvy3Impl(configManager),
-            4, new NodeManagerHelperCodenvy4Impl(configManager, httpJsonRequestFactory)
+            4, new NodeManagerHelperCodenvy4Impl(configManager, httpJsonRequestFactory, codenvy4xLicenseManager)
         );
     }
 

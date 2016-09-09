@@ -14,13 +14,12 @@
  */
 package com.codenvy.api.license.server;
 
-import com.codenvy.api.license.server.license.CodenvyLicense;
-import com.codenvy.api.license.server.license.CodenvyLicenseFactory;
-import com.codenvy.api.license.server.license.CodenvyLicenseManager;
-import com.codenvy.api.license.server.license.InvalidLicenseException;
-import com.codenvy.api.license.server.license.LicenseException;
-import com.codenvy.api.license.server.license.LicenseFeature;
-import com.codenvy.api.license.server.license.LicenseNotFoundException;
+import com.codenvy.api.license.CodenvyLicense;
+import com.codenvy.api.license.CodenvyLicenseFactory;
+import com.codenvy.api.license.InvalidLicenseException;
+import com.codenvy.api.license.LicenseException;
+import com.codenvy.api.license.LicenseFeature;
+import com.codenvy.api.license.LicenseNotFoundException;
 import com.codenvy.api.user.server.dao.AdminUserDao;
 import com.codenvy.swarm.client.SwarmDockerConnector;
 import com.codenvy.swarm.client.model.DockerNode;

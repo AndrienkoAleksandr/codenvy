@@ -46,10 +46,10 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.license4j</groupId>
-            <artifactId>license4j-runtime-library</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.license4j</groupId>-->
+            <!--<artifactId>license4j-runtime-library</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
