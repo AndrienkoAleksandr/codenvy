@@ -287,6 +287,7 @@ public class NodeManagerHelperCodenvy4Impl extends NodeManagerHelper {
     public void validateLicense() throws IOException {
         if (isCodenvy4Installed()) {
             validateLicenseOn4x();
+            return;
         }
 
         Config config = configManager.loadInstalledCodenvyConfig();
