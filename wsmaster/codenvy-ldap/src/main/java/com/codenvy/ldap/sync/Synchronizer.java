@@ -1,23 +1,22 @@
 package com.codenvy.ldap.sync;
 
-import com.google.common.collect.ImmutableMap;
-
-import org.eclipse.che.api.core.model.user.Profile;
-import org.eclipse.che.api.core.model.user.User;
 import org.eclipse.che.api.user.server.model.impl.ProfileImpl;
 import org.eclipse.che.api.user.server.model.impl.UserImpl;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.commons.lang.Pair;
+import org.ldaptive.Connection;
 import org.ldaptive.ConnectionFactory;
 import org.ldaptive.LdapEntry;
+import org.ldaptive.LdapException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.Arrays;
+
+import java.util.ArrayList;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.toMap;
+import static java.lang.String.format;
 
 /**
  * Synchronizes ldap attributes with a custom storage.
@@ -27,80 +26,95 @@ import static java.util.stream.Collectors.toMap;
 @Singleton
 public class Synchronizer {
 
-    private final Long syncPeriodMs;
-    private final Long pageSize;
-    private final Long pageReadTimeoutMs;
-
-    private final String baseDn;
-    private final String userFilter;
-    private final String additionalUserDn;
-
-    private final String groupFilter;
-    private final String additionalGroupDn;
-    private final String membersAttrName;
-
-    private final ConnectionFactory connFactory;
-    private final ProfileMapper     profileMapper;
-    private final UserMapper        userMapper;
+    private final Long                             syncPeriodMs;
+    private final int                              pageSize;
+    private final Long                             pageReadTimeoutMs;
+    private final String                           baseDn;
+    private final String                           userFilter;
+    private final ConnectionFactory                connFactory;
+    private final Function<LdapEntry, ProfileImpl> profileMapper;
+    private final Function<LdapEntry, UserImpl>    userMapper;
+    private final LdapGroupsConfig                 groupsConfig;
+    private final LdapEntrySelector                selector;
 
     @Inject
     public Synchronizer(ConnectionFactory connFactory,
+                        LdapGroupsConfig groupsConfig,
                         @Named("ldap.base_dn") String baseDn,
                         @Named("ldap.user.filter") String userFilter,
                         @Named("ldap.user.additional_dn") @Nullable String additionalUserDn,
-                        @Named("ldap.group.filter") String groupFilter,
-                        @Named("ldap.group.additional_dn") String additionalGroupDn,
-                        @Named("ldap.group.attr.members") String membersAttrName,
                         @Named("ldap.sync.period_ms") Long syncPeriodMs,
-                        @Named("ldap.sync.page.size") Long pageSize,
+                        @Named("ldap.sync.page.size") int pageSize,
                         @Named("ldap.sync.page.read_timeout_ms") Long pageReadTimeoutMs,
-                        @Named("ldap.sync.user.attr.id") String userIdAttrName,
-                        @Named("ldap.sync.user.attr.name") String userNameAttrName,
-                        @Named("ldap.sync.user.attr.email") String userEmailAttrName,
-                        @Named("ldap.sync.profile.attrs") Pair<String, String>[] profileAttrs) {
+                        @Named("ldap.sync.user.attr.id") String userIdAttr,
+                        @Named("ldap.sync.user.attr.name") String userNameAttr,
+                        @Named("ldap.sync.user.attr.email") String userEmailAttr,
+                        @Named("ldap.sync.profile.attrs") @Nullable Pair<String, String>[] profileAttributes) {
         this.connFactory = connFactory;
+        this.groupsConfig = groupsConfig;
         this.baseDn = baseDn;
         this.userFilter = userFilter;
-        this.additionalUserDn = additionalUserDn;
-        this.groupFilter = groupFilter;
-        this.additionalGroupDn = additionalGroupDn;
-        this.membersAttrName = membersAttrName;
         this.syncPeriodMs = syncPeriodMs;
         this.pageSize = pageSize;
         this.pageReadTimeoutMs = pageReadTimeoutMs;
-        this.userMapper = new UserMapper(userIdAttrName, userNameAttrName, userEmailAttrName);
-        this.profileMapper = new ProfileMapper(profileAttrs);
+
+        // getting attribute names which should be synchronized
+        final ArrayList<String> attrsList = new ArrayList<>();
+        attrsList.add(userIdAttr);
+        attrsList.add(userNameAttr);
+        attrsList.add(userEmailAttr);
+        if (profileAttributes != null) {
+            for (Pair<String, String> profileAttribute : profileAttributes) {
+                attrsList.add(profileAttribute.second);
+            }
+        }
+        final String[] syncAttributes = attrsList.toArray(new String[attrsList.size()]);
+
+        this.userMapper = new UserMapper(userIdAttr, userNameAttr, userEmailAttr);
+        this.profileMapper = profileAttributes == null ? null : new ProfileMapper(profileAttributes);
+
+        if (groupsConfig.isEnabled()) {
+            selector = new MembershipSelector(groupsConfig);
+        } else {
+            selector = new LookupSelector(pageSize,
+                                          additionalUserDn == null ? baseDn : additionalUserDn + ',' + baseDn,
+                                          userFilter,
+                                          syncAttributes);
+        }
     }
 
-    private static class UserMapper implements Function<LdapEntry, UserImpl> {
-
-        private final String idAttr;
-        private final String nameAttr;
-        private final String mailAttr;
-
-        private UserMapper(String idAttr, String nameAttr, String emailAttr) {
-            this.idAttr = idAttr;
-            this.nameAttr = nameAttr;
-            this.mailAttr = emailAttr;
-        }
-
-        @Override
-        public UserImpl apply(LdapEntry entry) {
-            return null;
+    public void syncAll() throws LdapException {
+        try (Connection connection = connFactory.getConnection()) {
+            connection.open();
+            for (LdapEntry entry : selector.select(connection)) {
+                System.out.println(entry);
+            }
         }
     }
 
-    private static class ProfileMapper implements Function<LdapEntry, ProfileImpl> {
+    /** Defines configuration for ldap groups. */
+    static class LdapGroupsConfig {
 
-        private final ImmutableMap<String, String> attributes;
+        private final String groupFilter;
+        private final String additionalDn;
+        private final String membersAttrName;
 
-        private ProfileMapper(Pair<String, String>[] attrs) {
-            attributes = ImmutableMap.copyOf(Arrays.stream(attrs).collect(toMap(pair -> pair.first, pair -> pair.second)));
+        @com.google.inject.Inject(optional = true)
+        LdapGroupsConfig(@Named("ldap.group.filter") @Nullable String groupFilter,
+                         @Named("ldap.group.additional_dn") @Nullable String additionalGroupDn,
+                         @Named("ldap.group.attr.members") @Nullable String membersAttrName) {
+            if (groupFilter != null && membersAttrName == null) {
+                throw new NullPointerException(format("Value of 'ldap.group.filter' is set to '%s', which means that groups search " +
+                                                      "is enabled that also requires 'ldap.group.attr.members' to be set",
+                                                      groupFilter));
+            }
+            this.groupFilter = groupFilter;
+            this.additionalDn = additionalGroupDn;
+            this.membersAttrName = membersAttrName;
         }
 
-        @Override
-        public ProfileImpl apply(LdapEntry entry) {
-            return null;
+        private boolean isEnabled() {
+            return groupFilter != null;
         }
     }
 }

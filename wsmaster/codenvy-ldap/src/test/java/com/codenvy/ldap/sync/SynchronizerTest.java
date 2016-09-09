@@ -12,12 +12,12 @@ package com.codenvy.ldap.sync;
 
 import com.codenvy.ldap.LdapConnectionFactoryProvider;
 import com.codenvy.ldap.MyLdapServer;
+import com.codenvy.ldap.sync.Synchronizer.LdapGroupsConfig;
 
-import org.apache.directory.server.core.DefaultDirectoryService;
 import org.apache.directory.shared.ldap.entry.ServerEntry;
+import org.eclipse.che.commons.lang.Pair;
 import org.ldaptive.Connection;
 import org.ldaptive.ConnectionFactory;
-import org.ldaptive.DefaultConnectionFactory;
 import org.ldaptive.Response;
 import org.ldaptive.SearchFilter;
 import org.ldaptive.SearchOperation;
@@ -46,11 +46,11 @@ public class SynchronizerTest {
     public void startServer() throws Exception {
         server = MyLdapServer.builder()
                              .setPartitionId("codenvy")
+                             .allowAnonymousAccess()
                              .setPartitionDn(BASE_DN)
                              .useTmpWorkingDir()
                              .build();
         server.start();
-
         connFactory = new LdapConnectionFactoryProvider(server.getAdminDn(),
                                                         server.getAdminPassword(),
                                                         server.getUrl(),
@@ -64,6 +64,32 @@ public class SynchronizerTest {
     }
 
     @Test
+    public void testUsersSynchronizationWithSimpleFilter() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            // half of users have givenName attribute
+            createUser("id" + i, "name" + i, "mail" + i, i % 2 == 0 ?
+                                                         new Pair[] {Pair.of("givenName", "given-name" + i)} :
+                                                         new Pair[0]);
+        }
+
+        @SuppressWarnings("unchecked") // obviously the last parameter is pair of strings
+        final Synchronizer synchronizer = new Synchronizer(connFactory,
+                                                           new LdapGroupsConfig(null, null, null),
+                                                           BASE_DN,
+                                                           "(&(objectClass=*)(givenName=*))",
+                                                           null,
+                                                           -1L,
+                                                           10,
+                                                           30_000L,
+                                                           "uid",
+                                                           "cn",
+                                                           "mail",
+                                                           new Pair[] {Pair.of("lastName", "givenName")});
+
+        synchronizer.syncAll();
+    }
+
+    @Test
     public void test() throws Exception {
         try (Connection conn = connFactory.getConnection()) {
             conn.open();
@@ -74,5 +100,18 @@ public class SynchronizerTest {
             final Response<SearchResult> resp = new SearchOperation(conn).execute(req);
             assertEquals(resp.getResult().getEntries().size(), 2);
         }
+    }
+
+    private void createUser(String id, String name, String email, Pair... other) throws Exception {
+        final ServerEntry entry = server.newEntry("uid", id);
+        entry.add("objectClass", "inetOrgPerson");
+        entry.add("uid", id);
+        entry.add("cn", name);
+        entry.add("mail", email);
+        entry.add("sn", "<none>");
+        for (Pair pair : other) {
+            entry.add(pair.first.toString(), pair.second.toString());
+        }
+        server.addEntry(entry);
     }
 }

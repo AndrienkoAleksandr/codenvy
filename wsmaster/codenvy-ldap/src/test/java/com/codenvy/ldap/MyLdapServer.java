@@ -10,7 +10,6 @@
  *******************************************************************************/
 package com.codenvy.ldap;
 
-import org.apache.directory.server.configuration.ApacheDS;
 import org.apache.directory.server.constants.ServerDNConstants;
 import org.apache.directory.server.core.CoreSession;
 import org.apache.directory.server.core.DefaultDirectoryService;
@@ -72,6 +71,11 @@ public class MyLdapServer {
         this.url = "ldap://localhost:" + this.port;
         ldapServer = new LdapServer();
         ldapServer.setTransports(new TcpTransport(this.port));
+        service = initDirectoryService(workingDir,
+                                       partitionId,
+                                       partitionDn,
+                                       enableChangelog,
+                                       allowAnonymousAccess);
         ldapServer.setDirectoryService(service = initDirectoryService(workingDir,
                                                                       partitionId,
                                                                       partitionDn,
@@ -222,7 +226,6 @@ public class MyLdapServer {
             this.port = port;
             return this;
         }
-
 
         public Builder setWorkingDir(File workingDir) {
             this.workingDir = workingDir;
