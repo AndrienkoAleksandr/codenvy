@@ -18,6 +18,8 @@ import org.ldaptive.sasl.Mechanism;
 import org.ldaptive.sasl.QualityOfProtection;
 import org.ldaptive.sasl.SecurityStrength;
 
+import javax.inject.Named;
+
 /**
  * Created by sj on 08.09.16.
  */
@@ -75,35 +77,57 @@ public class LdapConfiguration {
     private boolean            allowMultiplePrincipalAttributeValues;
     private AuthenticationType type;
     private boolean subtreeSearch = true;
-    private String              baseDn;
-    private String              userFilter;
-    private String              trustCertificates;
-    private String              keystore;
-    private String              keystorePassword;
-    private String              keystoreType;
-    private int                 minPoolSize;
-    private int                 maxPoolSize;
-    private boolean             validateOnCheckout;
-    private boolean             validatePeriodically;
-    private long                validatePeriod;
-    private boolean             failFast;
-    private long                idleTime;
-    private long                prunePeriod;
-    private long                blockWaitTime;
-    private String              ldapUrl;
-    private boolean             useSsl;
-    private boolean             useStartTls;
-    private long                connectTimeout;
-    private String              providerClass;
-    private boolean             allowMultipleDns;
-    private String              bindDn;
-    private String              bindCredential;
-    private String              saslRealm;
-    private Mechanism           saslMechanism;
-    private String              saslAuthorizationId;
-    private SecurityStrength    saslSecurityStrength;
-    private Boolean             saslMutualAuth;
-    private QualityOfProtection saslQualityOfProtection;
+    private       String              baseDn;
+    private       String              userFilter;
+    private       String              trustCertificates;
+    private       String              keystore;
+    private       String              keystorePassword;
+    private       String              keystoreType;
+    private       int                 minPoolSize;
+    private       int                 maxPoolSize;
+    private       boolean             validateOnCheckout;
+    private       boolean             validatePeriodically;
+    private       long                validatePeriod;
+    private       boolean             failFast;
+    private       long                idleTime;
+    private       long                prunePeriod;
+    private       long                blockWaitTime;
+    /**
+     *  Url to ldap server. Configured over ldap.url property.
+     */
+    private       String              ldapUrl;
+    private final int                 timeoutMs;
+    private final int                 readTimeoutMs;
+    private       boolean             useSsl;
+    private       boolean             useStartTls;
+    private       long                connectTimeout;
+    private       String              providerClass;
+    private       boolean             allowMultipleDns;
+    /**
+     *
+     */
+    private final String              bindDn;
+    private final String              bindCredential;
+    private       String              saslRealm;
+    private       Mechanism           saslMechanism;
+    private       String              saslAuthorizationId;
+    private       SecurityStrength    saslSecurityStrength;
+    private       Boolean             saslMutualAuth;
+    private       QualityOfProtection saslQualityOfProtection;
+
+
+    public LdapConfiguration(@Named("ldap.url") String ldapUrl,
+                             @Named("ldap.bind.dn") String bindDn,
+                             @Named("ldap.bind.credential") String bindCredential,
+                             @Named("ldap.connection.timeout_ms") int timeoutMs,
+                             @Named("ldap.connection.read_timeout_ms") int readTimeoutMs) {
+
+        this.ldapUrl = ldapUrl;
+        this.bindDn = bindDn;
+        this.bindCredential = bindCredential;
+        this.timeoutMs = timeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
+    }
 
 
     public boolean isAllowMultipleDns() {
